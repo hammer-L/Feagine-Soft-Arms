@@ -82,3 +82,21 @@ Run the random-action viewer demo with:
 ```powershell
 python demo_gym_env.py
 ```
+
+## IK demo
+
+`demo_ik_env.py` samples nearby, inward-biased targets and solves each one with
+`FeagineRobotBase.solve_inverse_kinematics()`, converts the three solved PCC
+sections to a normalized Gymnasium action, and steps the environment until the
+tool tip reaches the target:
+
+```powershell
+python demo_ik_env.py
+```
+
+Use a fixed world-frame target or run without rendering:
+
+```powershell
+python demo_ik_env.py --target 0.65 0.0 0.10 --episodes 1
+python demo_ik_env.py --episodes 20 --no-render
+```
