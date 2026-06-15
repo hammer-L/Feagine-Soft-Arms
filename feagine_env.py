@@ -72,6 +72,15 @@ class FeagineReachEnv(gym.Env):
     """
 
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 60}
+    _TARGET_MARKER_RADIUS = 0.008
+    _TARGET_MARKER_COLOR = np.asarray(
+        [1.0, 0.2, 0.0, 1.0],
+        dtype=np.float32,
+    )
+    _TARGET_HALO_COLOR = np.asarray(
+        [1.0, 0.85, 0.0, 0.25],
+        dtype=np.float32,
+    )
 
     def __init__(
         self,
@@ -262,6 +271,7 @@ class FeagineReachEnv(gym.Env):
                 self._viewer.cam.azimuth = 160.0
                 self._viewer.cam.elevation = -16.0
             self._update_deformable_visual(self._viewer)
+            self._update_target_marker()
             self._viewer.sync()
             return None
 
@@ -295,6 +305,44 @@ class FeagineReachEnv(gym.Env):
     def _update_deformable_visual(self, viewer: Any | None = None) -> None:
         if self._deformable_visual is not None:
             self._deformable_visual.update(viewer)
+
+    def _update_target_marker(self) -> None:
+        if self._viewer is None:
+            return
+
+        identity_rotation = np.eye(3, dtype=np.float64).reshape(-1)
+        with self._viewer.lock():
+            scene = self._viewer.user_scn
+            if len(scene.geoms) < 2:
+                raise RuntimeError(
+                    "MuJoCo viewer user scene does not have room for target markers."
+                )
+
+            mujoco.mjv_initGeom(
+                scene.geoms[0],
+                type=mujoco.mjtGeom.mjGEOM_SPHERE,
+                size=[
+                    2.0 * self._TARGET_MARKER_RADIUS,
+                    0.0,
+                    0.0,
+                ],
+                pos=self.target_position,
+                mat=identity_rotation,
+                rgba=self._TARGET_HALO_COLOR,
+            )
+            mujoco.mjv_initGeom(
+                scene.geoms[1],
+                type=mujoco.mjtGeom.mjGEOM_SPHERE,
+                size=[
+                    self._TARGET_MARKER_RADIUS,
+                    0.0,
+                    0.0,
+                ],
+                pos=self.target_position,
+                mat=identity_rotation,
+                rgba=self._TARGET_MARKER_COLOR,
+            )
+            scene.ngeom = 2
 
     def _get_observation(self) -> dict[str, np.ndarray]:
         tip_position, tip_quaternion = self._tip_pose()

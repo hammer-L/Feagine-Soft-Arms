@@ -88,7 +88,8 @@ python demo_gym_env.py
 `demo_ik_env.py` samples nearby, inward-biased targets and solves each one with
 `FeagineRobotBase.solve_inverse_kinematics()`, converts the three solved PCC
 sections to a normalized Gymnasium action, and steps the environment until the
-tool tip reaches the target:
+tool tip reaches the target. In `human` render mode, the target is shown as a
+bright orange sphere with a translucent yellow halo:
 
 ```powershell
 python demo_ik_env.py
